@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/pkg/errors"
 )
@@ -19,29 +18,15 @@ type Dir struct {
 
 // DirScanConfig contains configuration for scanning file tree.
 type DirScanConfig struct {
-	ScanOnlyTopLevel bool
-	ExcludedDirs     map[string]struct{}
-	ScanTimeout      time.Duration
+	ExcludedDirs map[string]struct{}
 }
-
-type FileTreeScanner interface {
-	Scan(string, DirScanConfig) (Dir, error)
-}
-
-// Scanner represents a scanner of OS file system.
-type Scanner struct{}
-
-// CurrentDirScanner represents a scanner of OS file system but without going
-// into sub catalogs.
-type CurrentDirScanner struct{}
 
 // Scan scans whole OS file system tree starting from path.
-func (s Scanner) Scan(path string, config DirScanConfig) (Dir, error) {
+func Scan(path string, config DirScanConfig) (Dir, error) {
 	fileInfos, err := readdir(path)
 	if err != nil {
 		return Dir{}, err
 	}
-
 	dir := New(path, 100)
 
 	for _, fileInfo := range fileInfos {
@@ -56,7 +41,7 @@ func (s Scanner) Scan(path string, config DirScanConfig) (Dir, error) {
 		}
 
 		newPath := filepath.Join(path, name)
-		subDir, err := s.Scan(newPath, config)
+		subDir, err := Scan(newPath, config)
 		if err != nil {
 			return Dir{}, err
 		}
@@ -66,8 +51,8 @@ func (s Scanner) Scan(path string, config DirScanConfig) (Dir, error) {
 	return dir, nil
 }
 
-// Scan scans files and sub catalogs from path
-func (s CurrentDirScanner) Scan(path string, config DirScanConfig) (Dir, error) {
+// ScanTopLevel scans files and sub catalogs from path without recurring sub catalogs.
+func ScanTopLevel(path string, config DirScanConfig) (Dir, error) {
 	fileInfos, err := readdir(path)
 	if err != nil {
 		return Dir{}, err

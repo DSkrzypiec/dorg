@@ -1,27 +1,54 @@
 package dir
 
 import (
-	"fmt"
 	"testing"
 )
 
-// TODO: mock file system
-func TestCurrentDirScanner(t *testing.T) {
+func TestScanTopLevel(t *testing.T) {
 	config := DirScanConfig{}
-	cds := CurrentDirScanner{}
 
-	t1, err := cds.Scan("C:\\Go", config)
+	tree, err := ScanTopLevel("../", config)
 	if err != nil {
-		t.Errorf("%v", err.Error())
+		t.Errorf("Error while scanning dir tree [../]: %s", err.Error())
 	}
 
-	fmt.Println(t1)
+	if len(tree.Files) <= 2 {
+		t.Errorf("Expected at least 3 files in [src/], got [%d]", len(tree.Files))
+	}
+	if len(tree.SubDirs) <= 1 {
+		t.Errorf("Expected at least 2 sub catalogs of [src/], got: [%d]", len(tree.SubDirs))
+	}
+	if _, ok := tree.SubDirs["config"]; !ok {
+		t.Error("Missing expected [../config] catalog in the tree.")
+	}
+	if _, ok := tree.SubDirs["dir"]; !ok {
+		t.Error("Missing expected [../dir] catalog in the tree.")
+	}
+}
 
-	s := Scanner{}
-	t2, err2 := s.Scan("C:\\Go", config)
+func TestScan(t *testing.T) {
+	config := DirScanConfig{}
+
+	tree, err := Scan("../", config)
 	if err != nil {
-		t.Errorf("%v", err2.Error())
+		t.Errorf("Error while scanning dir tree [../]: %s", err.Error())
 	}
 
-	fmt.Println(t2)
+	if len(tree.Files) <= 2 {
+		t.Errorf("Expected at least 3 files in [src/], got [%d]", len(tree.Files))
+	}
+	if len(tree.SubDirs) <= 1 {
+		t.Errorf("Expected at least 2 sub catalogs of [src/], got: [%d]", len(tree.SubDirs))
+	}
+	if _, ok := tree.SubDirs["config"]; !ok {
+		t.Error("Missing expected [../config] catalog in the tree.")
+	}
+	if _, ok := tree.SubDirs["dir"]; !ok {
+		t.Error("Missing expected [../dir] catalog in the tree.")
+	}
+
+	dirTree := tree.SubDirs["dir"]
+	if len(dirTree.Files) <= 1 {
+		t.Errorf("Expected at least 2 files in catalog [src/dir/], got: [%d]", len(dirTree.Files))
+	}
 }
