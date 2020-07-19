@@ -16,4 +16,12 @@ func TestCurrentDirScanner(t *testing.T) {
 	}
 
 	fmt.Println(t1)
+
+	s := Scanner{}
+	t2, err2 := s.Scan("C:\\Go", config)
+	if err != nil {
+		t.Errorf("%v", err2.Error())
+	}
+
+	fmt.Println(t2)
 }
