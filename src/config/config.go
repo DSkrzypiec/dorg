@@ -1,5 +1,7 @@
 package config
 
+const ConfigFileName = ".dorgconfig"
+
 // Config stores all of dorg configuration.
 type Config struct {
 	DownloadsPath  string `json:"downloads_path"`
