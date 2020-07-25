@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"time"
 
 	"dorg/config"
@@ -13,6 +14,10 @@ func main() {
 	flag.Parse()
 
 	config := config.Default(*downloadsPath)
+	_, err := config.CreateFileIfNotExist()
+	if err != nil {
+		log.Fatal("Cannot create config file.", err.Error())
+	}
 
 	for {
 		time.Sleep(1 * time.Second)

@@ -1,30 +1,38 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 
 	"github.com/pkg/errors"
 )
 
-func (c Config) FileExist() bool {
-
-	configPath := filepath.Join(homeDir, ConfigFileName)
+// CreateFileIfNotExist method creates configuration file (in case when it does not
+// exist yet) in %HOME%/.dorgconfig location or ./.dorgconfig if %HOME% is not
+// defined. It returns path to configuration file and error in case when config
+// file cannot be created.
+func (c Config) CreateFileIfNotExist() (string, error) {
+	configPath := filepath.Join(homeDirPath(), ConfigFileName)
 	_, configFileErr := os.Open(configPath)
 
-	if configFileErr != nil {
-		return false, 
+	if os.IsNotExist(configFileErr) {
+		_, newFileErr := os.Create(configPath)
+		if newFileErr != nil {
+			msg := fmt.Sprintf("Cannot create config file [%s]", configPath)
+			return "", errors.Wrap(newFileErr, msg)
+		}
 	}
 
-	return true, nil
+	return configPath, nil
 }
 
 // Returns path to dorg configuration file.
 func homeDirPath() string {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		return filepath.Join(".", ConfigFileName)
+		return "."
 	}
 
-	return filepath.Join(homeDir, ConfigFileName)
+	return homeDir
 }
