@@ -1,7 +1,6 @@
 package config
 
 import (
-	"crypto/md5"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -34,13 +33,13 @@ func (c *Config) SaveToFile() error {
 		return err
 	}
 
-	configJson, jsonErr := json.Marshal(*c)
+	configJson, jsonErr := json.MarshalIndent(*c, "", "\t")
 	if jsonErr != nil {
 		msg := fmt.Sprintf("Cannot marshal [%v] into JSON", *c)
 		return errors.Wrap(jsonErr, msg)
 	}
 
-	file, fErr := os.OpenFile(c.Filepath, os.O_WRONLY|os.O_APPEND, os.ModeAppend)
+	file, fErr := os.Create(c.Filepath)
 	defer file.Close()
 	if fErr != nil {
 		msg := fmt.Sprintf("Error while opening config file [%s]", c.Filepath)
@@ -56,7 +55,7 @@ func (c *Config) SaveToFile() error {
 	return nil
 }
 
-// TODO: Implement loading configuration from .json file.
+// TryParseConfig tries to load given file as Config object.
 func TryParseConfig(configPath string) (Config, error) {
 	configBytes, err := readBytesFromFile(configPath)
 	if err != nil {
@@ -83,12 +82,6 @@ func (c Config) Equals(another Config) bool {
 	tpEquals := c.TargetBasePath == another.TargetBasePath
 
 	return pathEquals && dpEquals && tpEquals
-}
-
-// Calcualtes MD5 hash of configuration file content.
-func (c Config) Hash() [md5.Size]byte {
-
-	return md5.Sum([]byte("TODO"))
 }
 
 // Read reads configuration files as bytes.
