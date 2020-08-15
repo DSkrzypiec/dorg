@@ -20,7 +20,13 @@ func (r *Reloader) ListenAndReload(configChan chan<- Config, errChan chan<- erro
 	for {
 		time.Sleep(r.ReloadInterval)
 		log.Println("Checking for config file changes...")
-		newConfig, err := TryParseConfig(r.ConfigFilePath)
+		configFile, err := r.CurrentConfig.OpenFile()
+		if err != nil {
+			msg := fmt.Sprintf("Cannot open config file [%s]", r.CurrentConfig.Filepath)
+			errChan <- errors.Wrap(err, msg)
+		}
+		newConfig, err := TryParseConfig(configFile)
+
 		log.Println("Config: ", newConfig)
 		if err != nil {
 			msg := fmt.Sprintf("Cannot parse configuration file [%s]", r.ConfigFilePath)

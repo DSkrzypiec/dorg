@@ -13,9 +13,13 @@ func main() {
 	downloadsPath := flag.String("d", "~/Downloads", "A path do downloads directory")
 	flag.Parse()
 
-	var cnf config.Config
-	cnf = config.Default(*downloadsPath)
-	cfErr := cnf.SaveToFile()
+	cnf := config.Config{"", *downloadsPath, *downloadsPath}
+	configFile, err := cnf.CreateFile()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	cfErr := cnf.SaveToFile(configFile)
 	if cfErr != nil {
 		log.Fatal(cfErr)
 	}
