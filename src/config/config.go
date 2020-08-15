@@ -40,7 +40,6 @@ func (c *Config) SaveToFile() error {
 	}
 
 	file, fErr := os.Create(c.Filepath)
-	defer file.Close()
 	if fErr != nil {
 		msg := fmt.Sprintf("Error while opening config file [%s]", c.Filepath)
 		return errors.Wrap(fErr, msg)
@@ -50,6 +49,11 @@ func (c *Config) SaveToFile() error {
 	if wErr != nil {
 		msg := fmt.Sprintf("Error while writing into config file [%s]", c.Filepath)
 		return errors.Wrap(wErr, msg)
+	}
+
+	if closeErr := file.Close(); closeErr != nil {
+		msg := fmt.Sprintf("Error while closing config file [%s]", c.Filepath)
+		return errors.Wrap(closeErr, msg)
 	}
 
 	return nil
