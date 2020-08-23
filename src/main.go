@@ -2,11 +2,12 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
+	"sync"
 	"time"
 
 	"dorg/config"
+	"dorg/loop"
 )
 
 func main() {
@@ -28,17 +29,17 @@ func main() {
 	newConfigErrChan := make(chan error)
 
 	cr := config.Reloader{cnf.Filepath, 5 * time.Second, cnf}
-	go cr.ListenAndReload(newConfigChan, newConfigErrChan)
-
-	for {
-		select {
-		case newCnf := <-newConfigChan:
-			cnf = newCnf
-		case err := <-newConfigErrChan:
-			log.Fatal(err)
-		default:
-			time.Sleep(1 * time.Second)
-			fmt.Printf("Waiting for new files to organize...[%s]\n", cnf.DownloadsPath)
-		}
+	mainLoopInputs := loop.MainInputs{
+		InitialConfig: cnf,
+		Config:        newConfigChan,
+		ConfigErr:     newConfigErrChan,
 	}
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+
+	go cr.ListenAndReload(newConfigChan, newConfigErrChan)
+	go loop.Main(mainLoopInputs)
+
+	wg.Wait()
 }
