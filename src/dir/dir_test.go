@@ -8,7 +8,7 @@ import (
 func TestScanTopLevel(t *testing.T) {
 	config := DirScanConfig{}
 
-	tree, err := ScanTopLevel("../", config)
+	tree, err := ScanTopLevel(FlatDir{"../"}, config)
 	if err != nil {
 		t.Errorf("Error while scanning dir tree [../]: %s", err.Error())
 	}
@@ -30,7 +30,7 @@ func TestScanTopLevel(t *testing.T) {
 func TestScan(t *testing.T) {
 	config := DirScanConfig{}
 
-	tree, err := Scan("../", config)
+	tree, err := Scan(FlatDir{"../"}, config)
 	if err != nil {
 		t.Errorf("Error while scanning dir tree [../]: %s", err.Error())
 	}
@@ -57,12 +57,12 @@ func TestScan(t *testing.T) {
 func TestHash(t *testing.T) {
 	config := DirScanConfig{}
 
-	tree, err := Scan("..", config)
+	tree, err := Scan(FlatDir{".."}, config)
 	if err != nil {
 		t.Errorf("Error while scanning dir tree [../]: %s", err.Error())
 	}
 
-	dirTree, dirErr := Scan(filepath.Join("..", "dir"), config)
+	dirTree, dirErr := Scan(FlatDir{filepath.Join("..", "dir")}, config)
 	if dirErr != nil {
 		t.Errorf("Error while scanning dir tree [../dir/]: %s", dirErr.Error())
 	}
@@ -92,12 +92,12 @@ func TestHash(t *testing.T) {
 func TestEquals(t *testing.T) {
 	config := DirScanConfig{}
 
-	tree, err := Scan("..", config)
+	tree, err := Scan(FlatDir{".."}, config)
 	if err != nil {
 		t.Errorf("Error while scanning dir tree [../]: %s", err.Error())
 	}
 
-	dirTree, dirErr := Scan(filepath.Join("..", "dir"), config)
+	dirTree, dirErr := Scan(FlatDir{filepath.Join("..", "dir")}, config)
 	if dirErr != nil {
 		t.Errorf("Error while scanning dir tree [../dir/]: %s", dirErr.Error())
 	}

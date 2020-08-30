@@ -30,7 +30,7 @@ func NewDirListener(config config.Config) (DirListener, error) {
 	excludedDirs := make(map[string]struct{})
 	scanConfig := DirScanConfig{ExcludedDirs: excludedDirs}
 
-	dir, err := Scan(config.DownloadsPath, scanConfig)
+	dir, err := Scan(FlatDir{config.DownloadsPath}, scanConfig)
 	if err != nil {
 		msg := fmt.Sprintf("Couldn't create new DirListener, probably couldn't scan [%s]",
 			config.DownloadsPath)
@@ -54,7 +54,7 @@ func (ds *DirListener) Listen(newFileInfoChan chan<- []os.FileInfo, errChan chan
 	for {
 		time.Sleep(ds.ListenInterval)
 
-		newDir, err := Scan(ds.Path, ds.ScanConfig)
+		newDir, err := Scan(FlatDir{ds.Path}, ds.ScanConfig)
 		if err != nil {
 			msg := fmt.Sprintf("Cannot scan file tree starting at [%s]", ds.Path)
 			errChan <- errors.Wrap(err, msg)

@@ -5,8 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/pkg/errors"
 )
 
 // Dir represents tree structure of files and catalogs.
@@ -22,12 +20,12 @@ type DirScanConfig struct {
 }
 
 // Scan scans whole OS file system tree starting from path.
-func Scan(path string, config DirScanConfig) (Dir, error) {
-	fileInfos, err := readdir(path)
+func Scan(reader DirReader, config DirScanConfig) (Dir, error) {
+	fileInfos, err := reader.Readdir()
 	if err != nil {
 		return Dir{}, err
 	}
-	dir := New(path, 100)
+	dir := New(reader.DirPath(), 100)
 
 	for _, fileInfo := range fileInfos {
 		name := fileInfo.Name()
@@ -40,8 +38,9 @@ func Scan(path string, config DirScanConfig) (Dir, error) {
 			continue
 		}
 
-		newPath := filepath.Join(path, name)
-		subDir, err := Scan(newPath, config)
+		newPath := filepath.Join(reader.DirPath(), name)
+		newReader := reader.New(newPath)
+		subDir, err := Scan(newReader, config)
 		if err != nil {
 			return Dir{}, err
 		}
@@ -52,12 +51,12 @@ func Scan(path string, config DirScanConfig) (Dir, error) {
 }
 
 // ScanTopLevel scans files and sub catalogs from path without recurring sub catalogs.
-func ScanTopLevel(path string, config DirScanConfig) (Dir, error) {
-	fileInfos, err := readdir(path)
+func ScanTopLevel(reader DirReader, config DirScanConfig) (Dir, error) {
+	fileInfos, err := reader.Readdir()
 	if err != nil {
 		return Dir{}, err
 	}
-	dir := New(path, 100)
+	dir := New(reader.DirPath(), 100)
 
 	for _, fileInfo := range fileInfos {
 		name := fileInfo.Name()
@@ -74,21 +73,6 @@ func ScanTopLevel(path string, config DirScanConfig) (Dir, error) {
 	}
 
 	return dir, nil
-}
-
-// Reads element of given directory.
-func readdir(path string) ([]os.FileInfo, error) {
-	currentDir, err := os.Open(path)
-	if err != nil {
-		return nil, errors.Wrap(err, fmt.Sprintf("Cannot open path [%s]", path))
-	}
-
-	fileInfos, err := currentDir.Readdir(-1)
-	if err != nil {
-		return nil, errors.Wrap(err, fmt.Sprintf("Cannot read file info for all files from [%s]", path))
-	}
-
-	return fileInfos, nil
 }
 
 // Initialize new Dir.
