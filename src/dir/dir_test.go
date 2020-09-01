@@ -54,6 +54,46 @@ func TestScan(t *testing.T) {
 	}
 }
 
+func TestScanDeep(t *testing.T) {
+	config := DirScanConfig{}
+	md := NewMockDir("Downloads", "f1.go", "f2.cpp", "sub1_g1.exe", "sub1_g2.cs", "xyz_h1.jpeg")
+	subMd := NewMockDir(filepath.Join("Downloads", "sub2"), "d2.a", "d22.b", "sub2sub_e0", "sub2sub_e10")
+	md.SubDirs["sub2"] = &subMd
+
+	tree, err := Scan(md, config)
+	if err != nil {
+		t.Errorf("Error while scanning mock dir tree [Downloads]: %s", err.Error())
+	}
+
+	//fmt.Println(tree)
+
+	if len(tree.Files) != 2 {
+		t.Errorf("Expected exactly 2 files in root dir. Got %d files - [%v]", len(tree.Files), tree.Files)
+	}
+	if len(tree.SubDirs) != 3 {
+		t.Errorf("Expected exactly 3 sub-directories. Got %d dirs", len(tree.SubDirs))
+	}
+	if _, exist := tree.SubDirs["sub1"]; !exist {
+		t.Errorf("Missing expected 'sub1' sub directory")
+	}
+	if _, exist := tree.SubDirs["xyz"]; !exist {
+		t.Errorf("Missing expected 'xyz' sub directory")
+	}
+	if _, exist := tree.SubDirs["sub2"]; !exist {
+		t.Errorf("Missing expected 'sub2' sub directory")
+	}
+
+	sub2 := tree.SubDirs["sub2"]
+	if len(sub2.Files) != 2 {
+		t.Errorf("Expected exactly 2 files in 'sub2' sub directory. Got %d files - [%v]",
+			len(sub2.Files), sub2.Files)
+	}
+	if len(sub2.SubDirs) != 1 {
+		t.Errorf("Expected single sub directory in 'Downloads/sub2'. Got %d",
+			len(sub2.SubDirs))
+	}
+}
+
 func TestHash(t *testing.T) {
 	config := DirScanConfig{}
 
