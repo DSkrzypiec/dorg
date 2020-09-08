@@ -4,9 +4,9 @@ package loop
 
 import (
 	"dorg/config"
-	"fmt"
-	"log"
 	"time"
+
+	"github.com/rs/zerolog/log"
 )
 
 type MainInputs struct {
@@ -23,11 +23,14 @@ func Main(inputs MainInputs) {
 		select {
 		case newCnf := <-inputs.Config:
 			cnf = newCnf
+			log.Info().Bool("Configuration changed", true).Fields(map[string]interface{}{
+				"New Config": newCnf,
+			}).Send()
 		case err := <-inputs.ConfigErr:
-			log.Fatal(err)
+			log.Fatal().Err(err).Send()
 		default:
 			time.Sleep(1 * time.Second)
-			fmt.Printf("Waiting for new files to organize...[%s]\n", cnf.DownloadsPath)
+			log.Info().Msgf("Waiting for new files to organize...[%s]", cnf.DownloadsPath)
 		}
 	}
 }
