@@ -2,18 +2,24 @@ package main
 
 import (
 	"flag"
+	"os"
 	"sync"
 	"time"
 
 	"dorg/config"
 	"dorg/loop"
 
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
 func main() {
 	downloadsPath := flag.String("d", "~/Downloads", "A path do downloads directory")
+	logIntoFile := flag.Bool("lf", false, "Logs will be saved into file. Default is .dorglog")
+	logFile := flag.String("logFile", ".dorglog", "Path to log file")
 	flag.Parse()
+
+	setupLog(*logIntoFile, *logFile)
 
 	cnf := config.Config{
 		Filepath:       "",
@@ -52,4 +58,23 @@ func main() {
 	go loop.Main(mainLoopInputs)
 
 	wg.Wait()
+}
+
+// Setup log based on program flags.
+func setupLog(logIntoFile bool, logFilePath string) {
+	if !logIntoFile {
+		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+		return
+	}
+
+	logFile, err := os.Create(logFilePath)
+	if err != nil {
+		log.Fatal().Err(err).Send()
+	}
+	// Just for initial info
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+	log.Info().Msgf("Logs will be logged into [%s] file.", logFilePath)
+
+	// Setup log file
+	log.Logger = zerolog.New(logFile).With().Timestamp().Logger()
 }
