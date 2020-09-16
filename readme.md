@@ -1,5 +1,7 @@
 # dorg
 
+[![Build Status](https://travis-ci.org/DSkrzypiec/dorg.svg?branch=master)](https://travis-ci.org/DSkrzypiec/dorg)
+
 **Important!** Currently application is under development. This comment will 
 be removed after the first release.
 
