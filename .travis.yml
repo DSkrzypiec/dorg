@@ -12,4 +12,4 @@ before_install:
   - go get -u github.com/rs/zerolog
 
 script:
-  go build
+  cd src && go build
