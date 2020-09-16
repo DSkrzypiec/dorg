@@ -1,6 +1,16 @@
 language: go
-notifications:
-  email:
-    recipients: damian.j.skrzypiec@gmail.com
-    on_success: change
-    on_failure: always
+go:
+  - 1.13
+  - master
+
+env:
+  global:
+    - GO111MODULE=on
+
+before_install:
+  - go get -u github.com/pkg/errors
+  - go get -u github.com/rs/zerolog
+
+script:
+  go build
+  go test ./...
