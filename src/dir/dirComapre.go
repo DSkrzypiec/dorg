@@ -1,6 +1,9 @@
 package dir
 
-import "os"
+import (
+	"os"
+	"path/filepath"
+)
 
 // Checks if given tree is identical as the object.
 func (tree Dir) Equals(another Dir) bool {
@@ -28,23 +31,25 @@ func (tree Dir) Diff(another Dir) (bool, Dir) {
 
 	diffTree := New(tree.Path, 100)
 	dirDiff(tree, another, &diffTree)
-	// TODO: tests!
 
-	return diffTree.IsEmpty(), diffTree
+	return !diffTree.IsEmpty(), diffTree
 }
 
-func dirDiff(tree, another Dir, diff *Dir) {
+func dirDiff(tree, another Dir, diff *Dir) Dir {
 	diff.Files = filesDiff(tree.Files, another.Files)
 
-	for dirName, dir := range tree.SubDirs {
+	for dirName, sub := range tree.SubDirs {
 		anotherSub, existsInAnother := another.SubDirs[dirName]
 		if !existsInAnother {
-			diff.SubDirs[dirName] = dir
+			diff.SubDirs[dirName] = sub
 			continue
 		}
 
-		dirDiff(dir, anotherSub, diff)
+		newSub := New(filepath.Join(tree.Path, dirName), 100)
+		diff.SubDirs[dirName] = dirDiff(sub, anotherSub, &newSub)
 	}
+
+	return *diff
 }
 
 // Determines orig \ new.

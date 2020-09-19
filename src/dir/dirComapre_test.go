@@ -1,9 +1,39 @@
 package dir
 
 import (
+	"fmt"
 	"os"
 	"testing"
 )
+
+func TestDirDiff(t *testing.T) {
+	config := DirScanConfig{}
+	md1 := NewMockDir("Path1", "f1.go", "f2.cpp", "sub1_g1.go", "sub2_h1.html", "sub3_i3.jpeg")
+	md2 := NewMockDir("Path1", "f1.go", "sub1_g1.go", "sub3_i3.jpeg", "sub3_i4.txt")
+
+	tree1, err1 := Scan(md1, config)
+	if err1 != nil {
+		t.Errorf("Error while scanning first tree: %s", err1.Error())
+	}
+
+	tree2, err2 := Scan(md2, config)
+	if err2 != nil {
+		t.Errorf("Error while scanning second tree: %s", err2.Error())
+	}
+
+	diff0, diffTree0 := tree1.Diff(tree1)
+	diff1, diffTree1 := tree1.Diff(tree2)
+	diff2, diffTree2 := tree2.Diff(tree1)
+
+	fmt.Println("Tree1 \\ Tree1:", diff0)
+	fmt.Println(diffTree0)
+
+	fmt.Println("Tree1 \\ Tree2:", diff1)
+	fmt.Println(diffTree1)
+
+	fmt.Println("Tree2 \\ Tree1:", diff2)
+	fmt.Println(diffTree2)
+}
 
 func TestFilesDiff(t *testing.T) {
 	orig := []os.FileInfo{
