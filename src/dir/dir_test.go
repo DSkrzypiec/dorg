@@ -54,6 +54,29 @@ func TestScan(t *testing.T) {
 	}
 }
 
+func TestScanExclude(t *testing.T) {
+	excludedDirs := make(map[string]struct{})
+	var empty struct{}
+	excludedDirs["sub1"] = empty
+	config := DirScanConfig{ExcludedDirs: excludedDirs}
+
+	md := NewMockDir("Downloads", "f1.go", "f2.cpp", "sub1_g1.exe", "sub1_g2.cs", "xyz_h1.jpeg")
+	tree, err := Scan(md, config)
+	if err != nil {
+		t.Errorf("Error while scanning mock dir tree [Downloads]: %s", err.Error())
+	}
+
+	if len(tree.Files) != 2 {
+		t.Errorf("Excpected 2 files in top dir, got: %d", len(tree.Files))
+	}
+	if len(tree.SubDirs) != 1 {
+		t.Errorf("Excepted only one subcatalog, got: %d", len(tree.SubDirs))
+	}
+	if _, exist := tree.SubDirs["sub1"]; exist {
+		t.Error("Catalog 'sub1' suppose to be excluded but wasn't")
+	}
+}
+
 func TestScanDeep(t *testing.T) {
 	config := DirScanConfig{}
 	md := NewMockDir("Downloads", "f1.go", "f2.cpp", "sub1_g1.exe", "sub1_g2.cs", "xyz_h1.jpeg")
