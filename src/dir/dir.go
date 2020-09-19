@@ -115,12 +115,11 @@ func (tree Dir) String() string {
 func (tree Dir) print(s *strings.Builder, depth int) string {
 	const indent = 4
 
-	if depth == 0 {
-		addSpaces(s, depth*indent)
-	} else {
-		addSpaces(s, (depth+1)*indent)
+	if depth > 0 {
+		depth++
 	}
 
+	addSpaces(s, depth*indent)
 	s.WriteString(fmt.Sprintf("[%s]:\n", tree.Path))
 	for _, file := range tree.Files {
 		addSpaces(s, (depth+1)*indent)
