@@ -151,3 +151,38 @@ func TestEquals(t *testing.T) {
 		t.Errorf("Subtree [dir] of [../] suppose to be the same as [../dir].")
 	}
 }
+
+func TestDirFilesCount(t *testing.T) {
+	config := DirScanConfig{}
+	md := NewMockDir("Downloads", "f1.go", "f2.cpp", "sub1_g1.exe", "sub1_g2.cs",
+		"xyz_h1.jpeg")
+	subMd := NewMockDir(filepath.Join("Downloads", "sub2"), "d2.a", "d22.b",
+		"sub2sub_e0", "sub2sub_e10")
+	md.SubDirs["sub2"] = &subMd
+
+	tree, err := Scan(md, config)
+	if err != nil {
+		t.Errorf("Error while scanning mock dir tree [Downloads]: %s", err.Error())
+	}
+
+	fCnt := tree.FilesCount()
+	if fCnt != 9 {
+		t.Errorf("Tree has 9 files, but counted: %d", fCnt)
+	}
+
+	sub2Tree, exists := tree.SubDirs["sub2"]
+	if !exists {
+		t.Errorf("Subcatalog 'sub2' doesn't exist in the tree but suppose to")
+	}
+
+	sub2FileCnt := sub2Tree.FilesCount()
+	if sub2FileCnt != 4 {
+		t.Errorf("Subcatalog 'sub2' has 4 files, but counted: %d", sub2FileCnt)
+	}
+
+	empty := New("path", 100)
+	emptyCnt := empty.FilesCount()
+	if emptyCnt != 0 {
+		t.Errorf("Empty Dir suppose to have 0 files, but counted: %d", emptyCnt)
+	}
+}

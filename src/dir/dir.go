@@ -84,7 +84,28 @@ func New(path string, capacity int) Dir {
 	}
 }
 
-// Tree in form of formated string.
+// Checks whenever Dir is empty.
+func (tree Dir) IsEmpty() bool {
+	return tree.FilesCount() == 0
+}
+
+// Return number of files in Dir (including all sub-catalogs recursively).
+func (tree Dir) FilesCount() int {
+	nFiles := 0
+	filesCount(tree, &nFiles)
+	return nFiles
+}
+
+// Recursive files count.
+func filesCount(tree Dir, currentCount *int) {
+	*currentCount += len(tree.Files)
+
+	for _, subTree := range tree.SubDirs {
+		filesCount(subTree, currentCount)
+	}
+}
+
+// Tree in form of formatted string.
 func (tree Dir) String() string {
 	var s strings.Builder
 	return tree.print(&s, 0)

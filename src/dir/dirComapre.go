@@ -28,13 +28,23 @@ func (tree Dir) Diff(another Dir) (bool, Dir) {
 
 	diffTree := New(tree.Path, 100)
 	dirDiff(tree, another, &diffTree)
+	// TODO: tests!
 
-	// TODO
-	return true, tree
+	return diffTree.IsEmpty(), diffTree
 }
 
-func dirDiff(tree, another Dir, dirDiff *Dir) {
-	// TODO
+func dirDiff(tree, another Dir, diff *Dir) {
+	diff.Files = filesDiff(tree.Files, another.Files)
+
+	for dirName, dir := range tree.SubDirs {
+		anotherSub, existsInAnother := another.SubDirs[dirName]
+		if !existsInAnother {
+			diff.SubDirs[dirName] = dir
+			continue
+		}
+
+		dirDiff(dir, anotherSub, diff)
+	}
 }
 
 // Determines orig \ new.
