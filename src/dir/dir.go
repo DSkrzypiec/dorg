@@ -113,20 +113,23 @@ func (tree Dir) String() string {
 
 // Recursion tree printing helper.
 func (tree Dir) print(s *strings.Builder, depth int) string {
-	const indent = 2
+	const indent = 4
 
-	addSpaces(s, depth*indent)
-	s.WriteString(fmt.Sprintf("Files in [%s]:\n", tree.Path))
-	for _, file := range tree.Files {
+	if depth == 0 {
 		addSpaces(s, depth*indent)
-		s.WriteString(fmt.Sprintf("  -%s (%d)\n", file.Name(), file.Size()))
+	} else {
+		addSpaces(s, (depth+1)*indent)
 	}
 
-	addSpaces(s, depth*indent)
-	s.WriteString(fmt.Sprintf("Catalogs in [%s]:\n", tree.Path))
+	s.WriteString(fmt.Sprintf("[%s]:\n", tree.Path))
+	for _, file := range tree.Files {
+		addSpaces(s, (depth+1)*indent)
+		s.WriteString(fmt.Sprintf("-%s (%d)\n", file.Name(), file.Size()))
+	}
+
 	for dirName, subDir := range tree.SubDirs {
-		addSpaces(s, depth*indent)
-		s.WriteString(fmt.Sprintf("  -%s\n", dirName))
+		addSpaces(s, (depth+1)*indent)
+		s.WriteString(fmt.Sprintf("-%s (DIR)\n", dirName))
 
 		if subDir.Path != "" {
 			subDir.print(s, depth+1)
