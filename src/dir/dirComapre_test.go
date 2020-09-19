@@ -1,7 +1,6 @@
 package dir
 
 import (
-	"fmt"
 	"os"
 	"testing"
 )
@@ -21,18 +20,76 @@ func TestDirDiff(t *testing.T) {
 		t.Errorf("Error while scanning second tree: %s", err2.Error())
 	}
 
+	// tree1 - tree1
 	diff0, diffTree0 := tree1.Diff(tree1)
+	if diff0 {
+		t.Error("tree.Diff(tree) suppose to return false - there is no diff.")
+	}
+	if !diffTree0.IsEmpty() {
+		t.Errorf("tree.Diff(tree) suppose to return empty files tree, got: \n %s",
+			diffTree0.String())
+	}
+
+	// tree1 - tree2
 	diff1, diffTree1 := tree1.Diff(tree2)
+	if !diff1 {
+		t.Error("tree1.Diff(tree2) suppose to return true, because tree1 is different then tree2.")
+	}
+	if diffTree1.FilesCount() != 2 {
+		t.Errorf("tree1.Diff(tree2) should contain 2 files, got: %d \n %s",
+			diffTree1.FilesCount(), diffTree1.String())
+	}
+	if diffTree1.Files[0].Name() != "f2.cpp" {
+		t.Error("Tree tree1.Diff(tree2) doesn't have file 'f2.cpp' in top catalog")
+	}
+
 	diff2, diffTree2 := tree2.Diff(tree1)
+	if !diff2 {
+		t.Error("tree2.Diff(tree1) suppose to return true, because tree1 is different then tree2.")
+	}
+	if diffTree2.FilesCount() != 1 {
+		t.Errorf("tree2.Diff(tree1) should contain 1 file, got: %d \n %s",
+			diffTree2.FilesCount(), diffTree2.String())
+	}
+	if _, existSub3 := diffTree2.SubDirs["sub3"]; !existSub3 {
+		t.Error("There should be subcatalog 'sub3' in diff tree tree2.Diff(tree1)")
+	}
 
-	fmt.Println("Tree1 \\ Tree1:", diff0)
-	fmt.Println(diffTree0)
+	sub3 := diffTree2.SubDirs["sub3"]
+	if sub3.Files[0].Name() != "i4.txt" {
+		t.Error("There should be file 'i4.txt' in subcatalog 'sub3' in diff tree tree2.Diff(tree1)")
+	}
+}
 
-	fmt.Println("Tree1 \\ Tree2:", diff1)
-	fmt.Println(diffTree1)
+func TestDirDiffEmpty(t *testing.T) {
+	config := DirScanConfig{}
+	empty := New("Path1", 1)
+	md := NewMockDir("Path1", "f1.go", "f2.cpp", "sub1_g1.go", "sub1_g2.html")
 
-	fmt.Println("Tree2 \\ Tree1:", diff2)
-	fmt.Println(diffTree2)
+	tree, err := Scan(md, config)
+	if err != nil {
+		t.Errorf("Error while scanning tree: %s", err.Error())
+	}
+
+	diff0, diffTree0 := tree.Diff(empty)
+	if !diff0 {
+		t.Error("There should be difference between empty and non-empty tree")
+	}
+	if !diffTree0.Equals(tree) {
+		t.Errorf("tree.Diff(empty) should be the same as tree. There isn't. Got tree \n %s \n and diff: \n %s",
+			tree.String(), diffTree0.String())
+	}
+
+	_, diffTree1 := empty.Diff(tree)
+	if !diffTree1.Equals(empty) {
+		t.Errorf("empty.Diff(tree) should be the same as empty tree. There isn't. Got empty \n %s \n and diff: \n %s",
+			empty.String(), diffTree1.String())
+	}
+
+	_, emptyDiff := empty.Diff(empty)
+	if !empty.Equals(emptyDiff) {
+		t.Errorf("empty.Diff(empty) should be empty, got: \n %s", emptyDiff.String())
+	}
 }
 
 func TestFilesDiff(t *testing.T) {

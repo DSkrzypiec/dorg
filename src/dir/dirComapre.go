@@ -23,7 +23,7 @@ func (tree Dir) Equals(another Dir) bool {
 // tree" which is tree \ another in term of set subtraction. This method is
 // meant to check whenever given Dir have changed over some time period. In
 // particular if tree.Path and another.Path differs then Diff return false and
-// empty Dir. It wouldn't return false and actual difference between trees.
+// empty Dir. It wouldn't return true and actual difference between trees.
 func (tree Dir) Diff(another Dir) (bool, Dir) {
 	if tree.Path != another.Path {
 		return false, Dir{}
