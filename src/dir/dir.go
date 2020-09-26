@@ -7,6 +7,8 @@ import (
 	"strings"
 )
 
+const InitialCapacity = 1 << 7
+
 // Dir represents tree structure of files and catalogs.
 type Dir struct {
 	Path    string
@@ -25,7 +27,7 @@ func Scan(reader DirReader, config DirScanConfig) (Dir, error) {
 	if err != nil {
 		return Dir{}, err
 	}
-	dir := New(reader.DirPath(), 100)
+	dir := New(reader.DirPath(), InitialCapacity)
 
 	for _, fileInfo := range fileInfos {
 		name := fileInfo.Name()
@@ -56,7 +58,7 @@ func ScanTopLevel(reader DirReader, config DirScanConfig) (Dir, error) {
 	if err != nil {
 		return Dir{}, err
 	}
-	dir := New(reader.DirPath(), 100)
+	dir := New(reader.DirPath(), InitialCapacity)
 
 	for _, fileInfo := range fileInfos {
 		name := fileInfo.Name()

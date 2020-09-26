@@ -29,7 +29,7 @@ func (tree Dir) Diff(another Dir) (bool, Dir) {
 		return false, Dir{}
 	}
 
-	diffTree := New(tree.Path, 100)
+	diffTree := New(tree.Path, InitialCapacity)
 	dirDiff(tree, another, &diffTree)
 
 	return !diffTree.IsEmpty(), diffTree
@@ -45,7 +45,7 @@ func dirDiff(tree, another Dir, diff *Dir) Dir {
 			continue
 		}
 
-		newSub := New(filepath.Join(tree.Path, dirName), 100)
+		newSub := New(filepath.Join(tree.Path, dirName), InitialCapacity)
 		diff.SubDirs[dirName] = dirDiff(sub, anotherSub, &newSub)
 	}
 
