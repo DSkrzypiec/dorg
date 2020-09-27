@@ -63,8 +63,9 @@ func (ds *DirListener) Listen(newDirDiffChan chan<- Dir, errChan chan<- error) {
 			diff, diffDir := newDir.Diff(*ds.CurrentDir)
 
 			if diff && !diffDir.IsEmpty() {
+				diffDir.CleanEmptyDir()
 				newDirDiffChan <- diffDir
-				ds.CurrentDir = &diffDir
+				ds.CurrentDir = &newDir
 			}
 		}
 	}
