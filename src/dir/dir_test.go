@@ -1,6 +1,7 @@
 package dir
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 )
@@ -114,6 +115,60 @@ func TestScanDeep(t *testing.T) {
 	if len(sub2.SubDirs) != 1 {
 		t.Errorf("Expected single sub directory in 'Downloads/sub2'. Got %d",
 			len(sub2.SubDirs))
+	}
+}
+
+func TestCleanEmptyDirs(t *testing.T) {
+	// Arrange
+	tree3 := Dir{
+		Path:  "Path1/sub3",
+		Files: []os.FileInfo{NewMockFileInfo("g.go", false)},
+		SubDirs: map[string]Dir{
+			"x1": New("Path1/sub3/x1", 1),
+			"x2": Dir{
+				Path:  "Path1/sub3/x2",
+				Files: []os.FileInfo{NewMockFileInfo("main.cpp", false)},
+			},
+		},
+	}
+
+	subDirs1 := make(map[string]Dir)
+	subDirs1["sub1"] = New("Path1/sub1", 1)
+	subDirs1["sub2"] = New("Path1/sub2", 1)
+	subDirs1["sub3"] = tree3
+
+	tree := Dir{
+		Path:    "Path1",
+		Files:   []os.FileInfo{NewMockFileInfo("f1.txt", false)},
+		SubDirs: subDirs1,
+	}
+
+	// Act
+	tree.CleanEmptyDir()
+
+	// Assert
+	if len(tree.Files) != 1 {
+		t.Errorf("Number of files in root dir should be 1, got: %d",
+			len(tree.Files))
+	}
+	if len(tree.SubDirs) != 1 {
+		t.Errorf("Expected 1 dir after clean up, got: %d", len(tree.SubDirs))
+	}
+
+	sub3, exist := tree.SubDirs["sub3"]
+	if !exist {
+		t.Error("Sub catalog [sub3] should not be deleted.")
+	}
+	if len(sub3.Files) != 1 {
+		t.Errorf("Number of files in [Path1/sub3] should be 1, got: %d",
+			len(sub3.Files))
+	}
+	if len(sub3.SubDirs) != 1 {
+		t.Errorf("Expected 1 dir after clean up in [Path1/sub3], got: %d",
+			len(sub3.SubDirs))
+	}
+	if _, x2Exist := sub3.SubDirs["x2"]; !x2Exist {
+		t.Error("Sub catalog [x2] should exist in [Path1/sub3] after cleanup.")
 	}
 }
 

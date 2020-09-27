@@ -86,6 +86,18 @@ func New(path string, capacity int) Dir {
 	}
 }
 
+// CleanEmptyDir recursively cleans up empty sub catalogs in the tree.
+// It might be especially useful to run this method on the diff.
+func (tree *Dir) CleanEmptyDir() {
+	for dirName, subTree := range tree.SubDirs {
+		if subTree.IsEmpty() {
+			delete(tree.SubDirs, dirName)
+			continue
+		}
+		subTree.CleanEmptyDir()
+	}
+}
+
 // Checks whenever Dir is empty.
 func (tree Dir) IsEmpty() bool {
 	return tree.FilesCount() == 0
