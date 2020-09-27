@@ -25,7 +25,7 @@ type DirListener struct {
 // NewDirListener creates new DirListener based on confi.Config by scanning
 // DownloadsPath catalog.
 func NewDirListener(config config.Config) (DirListener, error) {
-	// What about ExcludedDirs?
+	// TODO: What about ExcludedDirs?
 	excludedDirs := make(map[string]struct{})
 	scanConfig := DirScanConfig{ExcludedDirs: excludedDirs}
 
@@ -60,10 +60,12 @@ func (ds *DirListener) Listen(newDirDiffChan chan<- Dir, errChan chan<- error) {
 		}
 
 		if !ds.CurrentDir.Equals(newDir) {
-			_, diff := newDir.Diff(*ds.CurrentDir)
-			// ds.CurrentDir = &newDir // TODO: Do this after diff tree will be
-			//									sorted
-			newDirDiffChan <- diff
+			diff, diffDir := newDir.Diff(*ds.CurrentDir)
+
+			if diff && !diffDir.IsEmpty() {
+				newDirDiffChan <- diffDir
+				ds.CurrentDir = &diffDir
+			}
 		}
 	}
 }
