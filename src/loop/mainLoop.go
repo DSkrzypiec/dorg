@@ -4,6 +4,7 @@ package loop
 
 import (
 	"dorg/config"
+	"dorg/dir"
 	"time"
 
 	"github.com/rs/zerolog/log"
@@ -11,6 +12,8 @@ import (
 
 type MainInputs struct {
 	InitialConfig config.Config
+	DirDiff       chan dir.Dir
+	DirDiffErr    chan error
 	Config        chan config.Config
 	ConfigErr     chan error
 }
@@ -21,6 +24,11 @@ func Main(inputs MainInputs) {
 
 	for {
 		select {
+		case newDirDiff := <-inputs.DirDiff:
+			log.Info().Msg("New file!:")
+			log.Info().Msg(newDirDiff.String())
+		case dirErr := <-inputs.DirDiffErr:
+			log.Error().Msgf("Error from DirDiff: %s", dirErr.Error())
 		case newCnf := <-inputs.Config:
 			cnf = newCnf
 			log.Info().Bool("Configuration changed", true).Fields(map[string]interface{}{

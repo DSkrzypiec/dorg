@@ -2,7 +2,6 @@ package dir
 
 import (
 	"fmt"
-	"os"
 	"time"
 
 	"dorg/config"
@@ -13,7 +12,7 @@ import (
 // Listener represents a service which keeps listening on the directory and in case
 // when new files occurs they are send on the channel to be categorized.
 type Listener interface {
-	Listen(chan<- []os.FileInfo, chan<- error)
+	Listen(chan<- Dir, chan<- error)
 }
 
 type DirListener struct {
@@ -48,9 +47,9 @@ func NewDirListener(config config.Config) (DirListener, error) {
 }
 
 // Listen keep listening "downloads" directory file tree. When new files occurs
-// they are send onto the newFileInfoChan channel to be later moved and
-// categorized.
-func (ds *DirListener) Listen(newFileInfoChan chan<- []os.FileInfo, errChan chan<- error) {
+// they are send onto the newDirDiffChan channel in form of Dir to be later
+// moved and categorized.
+func (ds *DirListener) Listen(newDirDiffChan chan<- Dir, errChan chan<- error) {
 	for {
 		time.Sleep(ds.ListenInterval)
 
@@ -61,8 +60,10 @@ func (ds *DirListener) Listen(newFileInfoChan chan<- []os.FileInfo, errChan chan
 		}
 
 		if !ds.CurrentDir.Equals(newDir) {
-			// send new files onto the channel
-			fmt.Sprintf("%v", newDir)
+			_, diff := newDir.Diff(*ds.CurrentDir)
+			// ds.CurrentDir = &newDir // TODO: Do this after diff tree will be
+			//									sorted
+			newDirDiffChan <- diff
 		}
 	}
 }

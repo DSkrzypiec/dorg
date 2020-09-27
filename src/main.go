@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"dorg/config"
+	"dorg/dir"
 	"dorg/loop"
 
 	"github.com/rs/zerolog"
@@ -33,11 +34,13 @@ func main() {
 
 	cfErr := cnf.SaveToFile(configFile)
 	if cfErr != nil {
-		log.Fatal().Err(err).Send()
+		log.Fatal().Err(cfErr).Send()
 	}
 
 	newConfigChan := make(chan config.Config)
 	newConfigErrChan := make(chan error)
+	newDirDiffChan := make(chan dir.Dir)
+	newDirErrChan := make(chan error)
 
 	cr := config.Reloader{
 		ConfigFilePath: cnf.Filepath,
@@ -45,16 +48,24 @@ func main() {
 		CurrentConfig:  cnf,
 	}
 
+	dirListener, dlErr := dir.NewDirListener(cnf)
+	if dlErr != nil {
+		log.Fatal().Err(dlErr).Send()
+	}
+
 	mainLoopInputs := loop.MainInputs{
 		InitialConfig: cnf,
 		Config:        newConfigChan,
 		ConfigErr:     newConfigErrChan,
+		DirDiff:       newDirDiffChan,
+		DirDiffErr:    newDirErrChan,
 	}
 
 	var wg sync.WaitGroup
 	wg.Add(1)
 
 	go cr.ListenAndReload(newConfigChan, newConfigErrChan)
+	go dirListener.Listen(newDirDiffChan, newDirErrChan)
 	go loop.Main(mainLoopInputs)
 
 	wg.Wait()
